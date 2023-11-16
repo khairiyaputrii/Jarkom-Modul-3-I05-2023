@@ -143,6 +143,8 @@ On every nodes, edit the ```.bashrc``` file using ```nano``` command, where we w
 
 - **Himmel : DHCP Server**
 ```
+echo 'nameserver 192.168.122.1' > /etc/resolv.conf
+
 apt-get update
 apt-get install isc-dhcp-server -y
 cp -r -f /root/prak3/etc /
@@ -150,6 +152,8 @@ service isc-dhcp-server restart
 ```
 - **Heiter : DNS Server**
 ```
+echo 'nameserver 192.168.122.1' > /etc/resolv.conf
+
 apt-get update
 apt-get install bind9 -y
 cp -r -f /root/prak3/etc /
@@ -157,6 +161,8 @@ service bind9 restart
 ```
 - **Aura : Router (DHCP Relay)**
 ```
+echo 'nameserver 192.168.122.1' > /etc/resolv.conf
+
 apt-get update
 apt-get install isc-dhcp-relay -y
 service isc-dhcp-relay start
@@ -165,6 +171,8 @@ service isc-dhcp-relay restart
 ```
 - **Denken : Database Server**
 ```
+echo 'nameserver 192.168.122.1' > /etc/resolv.conf
+
 cp -r -f /root/prak3/etc /
 ```
 - **Eisen : Load Balancer**
@@ -184,14 +192,20 @@ cp -r -f /root/prak3/etc /
 ```
 - **Flamme : Laravel Worker**
 ```
+echo 'nameserver 192.168.122.1' > /etc/resolv.conf
+
 cp -r -f /root/prak3/etc /
 ```
 - **Fern : Laravel Worker**
 ```
+echo 'nameserver 192.168.122.1' > /etc/resolv.conf
+
 cp -r -f /root/prak3/etc /
 ```
 - **Lawine : PHP Worker**
 ```
+echo 'nameserver 192.168.122.1' > /etc/resolv.conf
+
 cp -r -f /root/prak3/etc /
 
 apt-get update
@@ -216,6 +230,8 @@ service php7.3-fpm restart
 ```
 - **Linie : PHP Worker**
 ```
+echo 'nameserver 192.168.122.1' > /etc/resolv.conf
+
 cp -r -f /root/prak3/etc /
 
 apt-get update
@@ -240,6 +256,8 @@ service php7.3-fpm restart
 ```
 - **Lugner : PHP Worker**
 ```
+echo 'nameserver 192.168.122.1' > /etc/resolv.conf
+
 cp -r -f /root/prak3/etc /
 
 apt-get update

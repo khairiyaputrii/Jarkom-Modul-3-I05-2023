@@ -306,21 +306,178 @@ cp -r -f /root/prak3/etc /
 # No. 1
 > Lakukan konfigurasi sesuai dengan peta yang sudah diberikan.
 
+The first thing that we need to do is to prepare the configurations for the topologi above, then we were asked to register 2 domains which are **riegel.canyon.yyy.com** for the ```Laravel Worker``` and **granz.channel.yyy.com** for the ```PHP Worker``` that points to the workers with IP address ```10.61.x.1```. Since I started the IP address for each nodes from ```x.4``` and not ```x.1```, I will use the nodes with IP address of ```x.4```. To do this, we need to run some command on the DNS Server, which is Heiter:
+
+### Script
+```sh
+echo 'zone "riegel.canyon.I05.com" {
+	type master;
+	file "/etc/bind/jarkom/riegel.canyon.I05.com";
+};
+
+zone "granz.channel.I05.com" {
+	type master;
+	file "/etc/bind/jarkom/granz.channel.I05.com";
+};
+' > /etc/bind/named.conf.local
+
+mkdir /etc/bind/jarkom
+cp /etc/bind/db.local /etc/bind/jarkom/riegel.canyon.I05.com
+cp /etc/bind/db.local /etc/bind/jarkom/granz.channel.I05.com
+
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     riegel.canyon.I05.com. root.riegel.canyon.I05.com. (
+                     2023111601         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      riegel.canyon.I05.com.
+@       IN      A       10.61.1.3               ; IP Heiter
+@       IN      A       10.61.4.4               ; IP Frieren
+www     IN      CNAME   riegel.canyon.I05.com.
+@       IN      AAAA    ::1
+' > /etc/bind/jarkom/riegel.canyon.I05.com
+
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     granz.channel.I05.com. root.granz.channel.I05.com. (
+                     2023111601         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      granz.channel.I05.com.
+@       IN      A       10.61.1.3               ; IP Heiter
+@       IN      A       10.61.3.4               ; IP Lawine
+www     IN      CNAME   granz.channel.I05.com.
+@       IN      AAAA    ::1
+' > /etc/bind/jarkom/granz.channel.I05.com
+
+service bind9 restart
+```
+
+After we run the script above, we will move to the **Frieren** and **Lawine** nodes and do some testing to check if it succeed or not, by first connecting the node to the internet and then run the ```ping``` command. 
+
+On **Frieren** :
+```sh
+ping riegel.canyon.I05.com
+```
+
+On **Lawine** :
+```sh
+ping granz.channel.I05.com
+```
+
+### Result
+
 # No. 2
 > Semua CLIENT harus menggunakan konfigurasi dari DHCP Server.
 Client yang melalui Switch3 mendapatkan range IP dari [prefix IP].3.16 - [prefix IP].3.32 dan [prefix IP].3.64 - [prefix IP].3.80
 
+To do this we need to run the command below to the DHCP Server so that the clients that are on the **Switch 3** will get range of IP from ```[prefix IP].3.16 - [prefix IP].3.32 and [prefix IP].3.64 - [prefix IP].3.80```
+
+### Script
+```sh
+echo 'subnet 10.61.1.0 netmask 255.255.255.0 {}
+subnet 10.61.2.0 netmask 255.255.255.0 {}
+
+subnet 10.61.3.0 netmask 255.255.255.0 {
+    range 10.61.3.16 10.61.3.32;
+    range 10.61.3.64 10.61.3.80;
+    option routers 10.61.3.1;
+}' > /etc/dhcp/dhcpd.conf
+```
+
 # No. 3
 > Client yang melalui Switch4 mendapatkan range IP dari [prefix IP].4.12 - [prefix IP].4.20 dan [prefix IP].4.160 - [prefix IP].4.168
+
+To do this we need to add some new configurations for the clients on **Switch 4**, like this:
+
+### Script
+```sh
+echo 'subnet 10.61.1.0 netmask 255.255.255.0 {}
+subnet 10.61.2.0 netmask 255.255.255.0 {}
+
+subnet 10.61.3.0 netmask 255.255.255.0 {
+    range 10.61.3.16 10.61.3.32;
+    range 10.61.3.64 10.61.3.80;
+    option routers 10.61.3.1;
+}
+
+subnet 10.61.4.0 netmask 255.255.255.0 {
+    range 10.61.4.12 10.61.4.20;
+    range 10.61.4.160 10.61.4.168;
+    option routers 10.61.4.1;
+}' > /etc/dhcp/dhcpd.conf
+```
 
 # No. 4
 > Client mendapatkan DNS dari Heiter dan dapat terhubung dengan internet melalui DNS tersebut
 
+For this number, we need to add some configurations such as ```option broadcast-address``` and ```option domain-name-servers``` so that the DNS that the client got from Heiter can be used.
+
+### Script
+```sh
+echo 'subnet 10.61.1.0 netmask 255.255.255.0 {}
+subnet 10.61.2.0 netmask 255.255.255.0 {}
+
+subnet 10.61.3.0 netmask 255.255.255.0 {
+    range 10.61.3.16 10.61.3.32;
+    range 10.61.3.64 10.61.3.80;
+    option routers 10.61.3.1;
+    option broadcast-address 10.61.3.255;
+    option domain-name-servers 10.61.1.3;
+}
+
+subnet 10.61.4.0 netmask 255.255.255.0 {
+    range 10.61.4.12 10.61.4.20;
+    range 10.61.4.160 10.61.4.168;
+    option routers 10.61.4.1;
+    option broadcast-address 10.61.4.255;
+    option domain-name-servers 10.61.1.3;
+}' > /etc/dhcp/dhcpd.conf
+```
+
 # No. 5
-> Lama waktu DHCP server meminjamkan alamat IP kepada Client yang melalui Switch3 selama 3 menit sedangkan pada client yang melalui Switch4 selama 12 menit. Dengan waktu maksimal dialokasikan untuk peminjaman alamat IP selama 96 menit 
+> Lama waktu DHCP server meminjamkan alamat IP kepada Client yang melalui Switch3 selama 3 menit sedangkan pada client yang melalui Switch4 selama 12 menit. Dengan waktu maksimal dialokasikan untuk peminjaman alamat IP selama 96 menit.
+
+### Script
+```sh
+echo 'subnet 10.61.1.0 netmask 255.255.255.0 {}
+subnet 10.61.2.0 netmask 255.255.255.0 {}
+
+subnet 10.61.3.0 netmask 255.255.255.0 {
+    range 10.61.3.16 10.61.3.32;
+    range 10.61.3.64 10.61.3.80;
+    option routers 10.61.3.1;
+    option broadcast-address 10.61.3.255;
+    option domain-name-servers 10.61.1.3;
+    default-lease-time 180;
+    max-lease-time 5760;
+}
+
+subnet 10.61.4.0 netmask 255.255.255.0 {
+    range 10.61.4.12 10.61.4.20;
+    range 10.61.4.160 10.61.4.168;
+    option routers 10.61.4.1;
+    option broadcast-address 10.61.4.255;
+    option domain-name-servers 10.61.1.3;
+    default-lease-time 720;
+    max-lease-time 5760;
+}' > /etc/dhcp/dhcpd.conf
+```
 
 # No. 6
 > Pada masing-masing worker PHP, lakukan konfigurasi virtual host untuk website berikut dengan menggunakan php 7.3.
+
 # No. 7
 > Kepala suku dari Bredt Region memberikan resource server sebagai berikut:
 Lawine, 4GB, 2vCPU, dan 80 GB SSD.

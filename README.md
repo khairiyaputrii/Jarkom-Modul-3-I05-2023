@@ -186,26 +186,68 @@ cp -r -f /root/prak3/etc /
 
 echo nameserver 192.168.122.1 > /etc/resolv.conf
 apt-get update
-apt install nginx php php-fpm -y
-service php7.3-fpm status
+apt-get install apache2-utils -y
+apt-get install nginx -y
+apt-get install lynx -y
+
+service nginx start
 ```
 - **Frieren : Laravel Worker**
 ```
 echo nameserver 192.168.122.1 > /etc/resolv.conf
 
 cp -r -f /root/prak3/etc /
+
+apt-get update
+apt-get install lynx -y
+apt-get install mariadb-client -y
+apt-get install -y lsb-release ca-certificates a   apt-transport-https software-properties-common gnupg2
+curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
+sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+apt-get update
+apt-get install php8.0-mbstring php8.0-xml php8.0-cli   php8.0-common php8.0-intl php8.0-opcache php8.0-readline php8.0-mysql php8.0-fpm php8.0-curl unzip wget -y
+apt-get install nginx -y
+
+service nginx start
+service php8.0-fpm start
 ```
 - **Flamme : Laravel Worker**
 ```
 echo 'nameserver 192.168.122.1' > /etc/resolv.conf
 
 cp -r -f /root/prak3/etc /
+
+apt-get update
+apt-get install lynx -y
+apt-get install mariadb-client -y
+apt-get install -y lsb-release ca-certificates a   apt-transport-https software-properties-common gnupg2
+curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
+sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+apt-get update
+apt-get install php8.0-mbstring php8.0-xml php8.0-cli   php8.0-common php8.0-intl php8.0-opcache php8.0-readline php8.0-mysql php8.0-fpm php8.0-curl unzip wget -y
+apt-get install nginx -y
+
+service nginx start
+service php8.0-fpm start
 ```
 - **Fern : Laravel Worker**
 ```
 echo 'nameserver 192.168.122.1' > /etc/resolv.conf
 
 cp -r -f /root/prak3/etc /
+
+apt-get update
+apt-get install lynx -y
+apt-get install mariadb-client -y
+apt-get install -y lsb-release ca-certificates a   apt-transport-https software-properties-common gnupg2
+curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
+sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+apt-get update
+apt-get install php8.0-mbstring php8.0-xml php8.0-cli   php8.0-common php8.0-intl php8.0-opcache php8.0-readline php8.0-mysql php8.0-fpm php8.0-curl unzip wget -y
+apt-get install nginx -y
+
+service nginx start
+service php8.0-fpm start
 ```
 - **Lawine : PHP Worker**
 ```

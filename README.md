@@ -665,7 +665,7 @@ The rest of the configuration is the same as Question 7
 ## Script
 Run the following command on the `Revolte` client
 ```
-ab -n 200 -c 10 http://www.granz.channel.a09.com/ 
+ab -n 200 -c 10 http://www.granz.channel.I05.com/ 
 ```
 
 # No. 9

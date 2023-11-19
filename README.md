@@ -630,7 +630,9 @@ server {
     }
 }' > /etc/nginx/sites-available/lb_php
 ```
-Testing:
+The meaning is that when we access an endpoint containing ```/its```, it will be redirected by **proxy_pass** to https://www.its.ac.id.
+
+Testing on Revolte using this command:
 ```
 lynx www.granz.channel.I05.com/its
 ```

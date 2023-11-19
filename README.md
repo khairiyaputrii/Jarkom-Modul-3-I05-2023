@@ -478,12 +478,110 @@ subnet 10.61.4.0 netmask 255.255.255.0 {
 # No. 6
 > Pada masing-masing worker PHP, lakukan konfigurasi virtual host untuk website berikut dengan menggunakan php 7.3.
 
+Di PHP Worker (Lawine, Linie, Lugner)
+```
+apt-get update
+apt install nginx php php-fpm -y
+apt-get install wget
+apt-get install unzip
+
+wget --no-check-certificate 'https://drive.usercontent.google.com/download?id=1ViSkRq7SmwZgdK64eRbr5Fm1EGCTPrU1&export=download&authuser=0&confirm=t&uuid=0e499712-8150-42d4-a474-b29dfb026ab6&at=APZUnTVBse4ducwDDntmAkLSWB1_:1699949521984' -O  granz.channel.I05.com
+
+unzip granz.channel.I05.com
+
+cp -r modul-3/ /var/www
+
+rm -r modul-3
+
+nano /etc/nginx/sites-available/jarkom
+
+tambahkan
+server {
+   	listen 80;
+   	root /var/www/modul-3;
+   	index index.php index.html index.htm;
+   	server_name _;
+   	location / {
+   			try_files $uri $uri/ /index.php?$query_string;
+   	}
+   	# pass PHP scripts to FastCGI server
+   	location ~ \.php$ {
+   	include snippets/fastcgi-php.conf;
+   	fastcgi_pass unix:/var/run/php/php7.3-fpm.sock;
+   	}
+   	location ~ /\.ht {
+   			deny all;
+   	}
+   	error_log /var/log/nginx/jarkom_error.log;
+   	access_log /var/log/nginx/jarkom_access.log;
+}
+
+ln -s /etc/nginx/sites-available/jarkom /etc/nginx/sites-enabled
+rm -r /etc/nginx/sites-enabled/default
+
+service nginx reload
+service nginx restart
+
+service php7.3-fpm start
+service php7.3-fpm restart
+```
+
+Di Semua Client (Saya melakukan setting di Revolte)
+```
+apt-get update
+apt install lynx -y
+
+Testing
+lynx granz.channel.I05.com
+```
+
 # No. 7
 > Kepala suku dari Bredt Region memberikan resource server sebagai berikut:
 Lawine, 4GB, 2vCPU, dan 80 GB SSD.
 Linie, 2GB, 2vCPU, dan 50 GB SSD.
 Lugner 1GB, 1vCPU, dan 25 GB SSD.
 aturlah agar Eisen dapat bekerja dengan maksimal, lalu lakukan testing dengan 1000 request dan 100 request/second.
+
+Di Eisen
+```
+echo nameserver 192.168.122.1 > /etc/resolv.conf
+apt-get update
+apt install nginx php php-fpm -y
+
+nano /etc/nginx/sites-available/lb-jarkom
+ 
+Tambahkan
+upstream myweb {
+       server 10.61.3.4;
+       server 10.61.3.5;
+       server 10.61.3.6;
+}
+
+server {
+        listen 80;
+        server_name granz.channel.I05.com;
+        location / {
+        proxy_pass http://myweb;
+        }
+}
+
+ln -s /etc/nginx/sites-available/lb-jarkom /etc/nginx/sites-enabled
+rm -r /etc/nginx/sites-enabled/default
+service nginx start
+```
+Di Heiter
+```
+nano /etc/bind/jarkom/granz.channel.I05.com
+ubah IP arahin ke Load Balancer 10.61.2.3
+
+service bind9 restart
+```
+Di Revolte
+```
+apt-get install apache2
+service apache2 start
+ab -n 1000 -c 100 http://www.granz.channel.I05.com/ 
+```
 
 # No. 8
 > Karena diminta untuk menuliskan grimoire, buatlah analisis hasil testing dengan 200 request dan 10 request/second masing-masing algoritma Load Balancer dengan ketentuan sebagai berikut:

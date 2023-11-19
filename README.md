@@ -522,6 +522,9 @@ subnet 10.61.4.0 netmask 255.255.255.0 {
     option domain-name-servers 10.61.1.3;
 }' > /etc/dhcp/dhcpd.conf
 ```
+Testing:
+![Riegel](images/PingRiegel.jpeg)
+![Granz](images/PingGranz.jpeg)
 
 # No. 5
 > Lama waktu DHCP server meminjamkan alamat IP kepada Client yang melalui Switch3 selama 3 menit sedangkan pada client yang melalui Switch4 selama 12 menit. Dengan waktu maksimal dialokasikan untuk peminjaman alamat IP selama 96 menit.

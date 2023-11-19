@@ -789,6 +789,7 @@ service php8.0-fpm restart
 Because the processes configured previously on each worker, specifically on the package manager, did not provide satisfactory results to improve worker performance, an algorithm is added to the load balancer. The algorithm used is Least-Connection, where this algorithm prioritizes distribution based on the lowest workload. The master node will record all loads and performance from all nodes and will prioritize the ones with the lowest workload. This way, it is expected that no server will have a low load
 ## Script
 ```
+
 echo 'upstream worker {
     least_conn;
     server 10.61.4.1:8001;

@@ -479,25 +479,18 @@ subnet 10.61.4.0 netmask 255.255.255.0 {
 # No. 6
 > Pada masing-masing worker PHP, lakukan konfigurasi virtual host untuk website berikut dengan menggunakan php 7.3.
 
-On PHP Worker (Lawine, Linie, Lugner)
-```
-apt-get update
-apt install nginx php php-fpm -y
-apt-get install wget
-apt-get install unzip
+Before starting, we need to set up all PHP Workers first. After that do these configurations to **download** and **unzip** using the ```wget``` command.
 
+### Script
+On PHP Worker (Lawine, Linie, Lugner)
+```sh
 wget --no-check-certificate 'https://drive.usercontent.google.com/download?id=1ViSkRq7SmwZgdK64eRbr5Fm1EGCTPrU1&export=download&authuser=0&confirm=t&uuid=0e499712-8150-42d4-a474-b29dfb026ab6&at=APZUnTVBse4ducwDDntmAkLSWB1_:1699949521984' -O  granz.channel.I05.com
 
 unzip granz.channel.I05.com
-
 cp -r modul-3/ /var/www
-
 rm -r modul-3
 
-nano /etc/nginx/sites-available/jarkom
-
-tambahkan
-server {
+echo 'server {
    	listen 80;
    	root /var/www/modul-3;
    	index index.php index.html index.htm;
@@ -515,7 +508,7 @@ server {
    	}
    	error_log /var/log/nginx/jarkom_error.log;
    	access_log /var/log/nginx/jarkom_access.log;
-}
+}' > /etc/nginx/sites-available/jarkom
 
 ln -s /etc/nginx/sites-available/jarkom /etc/nginx/sites-enabled
 rm -r /etc/nginx/sites-enabled/default
@@ -527,12 +520,8 @@ service php7.3-fpm start
 service php7.3-fpm restart
 ```
 
-On All Clients (We made settings in Revolte)
-```
-apt-get update
-apt install lynx -y
-
-Testing
+On All Clients (We made settings in Revolte) testing using this command:
+```sh
 lynx granz.channel.I05.com
 ```
 

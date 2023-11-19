@@ -632,7 +632,7 @@ server {
 ```
 Testing:
 ```
-lynx www.granz.channel.a09.com/its
+lynx www.granz.channel.I05.com/its
 ```
 
 # No. 12

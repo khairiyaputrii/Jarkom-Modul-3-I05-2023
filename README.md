@@ -331,23 +331,53 @@ service php7.3-fpm restart
 ```
 echo nameserver 192.168.122.1 > /etc/resolv.conf
 
-apt-get install apache2
+apt update
+apt install lynx -y
+apt install htop -y
+apt install apache2-utils -y
+apt-get install jq -y
 service apache2 start
 
 cp -r -f /root/prak3/etc /
 
-apt install lynx -y
 ```
 - **Richter : Client**
 ```
+echo nameserver 192.168.122.1 > /etc/resolv.conf
+
+apt update
+apt install lynx -y
+apt install htop -y
+apt install apache2-utils -y
+apt-get install jq -y
+service apache2 start
+
 cp -r -f /root/prak3/etc /
 ```
 - **Sein : Client**
 ```
+echo nameserver 192.168.122.1 > /etc/resolv.conf
+
+apt update
+apt install lynx -y
+apt install htop -y
+apt install apache2-utils -y
+apt-get install jq -y
+service apache2 start
+
 cp -r -f /root/prak3/etc /
 ```
 - **Stark : Client**
 ```
+echo nameserver 192.168.122.1 > /etc/resolv.conf
+
+apt update
+apt install lynx -y
+apt install htop -y
+apt install apache2-utils -y
+apt-get install jq -y
+service apache2 start
+
 cp -r -f /root/prak3/etc /
 ```
 # No. 1

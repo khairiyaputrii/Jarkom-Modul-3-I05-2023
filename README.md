@@ -600,6 +600,41 @@ Analisis
 # No. 11
 > Lalu buat untuk setiap request yang mengandung /its akan di proxy passing menuju halaman https://www.its.ac.id.
 
+We need to add some configurations on nginx like this:
+
+### Script
+```sh
+echo 'upstream worker {
+    server 10.61.3.6;
+    server 10.61.3.5;
+    server 10.61.3.4;
+}
+
+server {
+    listen 80;
+    server_name granz.channel.I05.com www.granz.channel.I05.com;
+
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
+
+    location / {
+        proxy_pass http://worker;
+    }
+
+    location ~ /its {
+        proxy_pass https://www.its.ac.id;
+        proxy_set_header Host www.its.ac.id;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}' > /etc/nginx/sites-available/lb_php
+```
+Testing:
+```
+lynx www.granz.channel.a09.com/its
+```
+
 # No. 12
 > Selanjutnya LB ini hanya boleh diakses oleh client dengan IP [Prefix IP].3.69, [Prefix IP].3.70, [Prefix IP].4.167, dan [Prefix IP].4.168.
 

@@ -723,9 +723,184 @@ mariadb --host=10.61.2.2 --port=3306 --user=kelompokI05 --password=passwordI05 d
 # No. 14
 > Frieren, Flamme, dan Fern memiliki Riegel Channel sesuai dengan quest guide berikut. Jangan lupa melakukan instalasi PHP8.0 dan Composer
 
+To do this, we need perform the installation on each worker as follows:
+```sh
+apt-get update
+apt-get install mariadb-client -y
+apt-get install lynx -y
+apt-get install -y lsb-release ca-certificates apt-transport-https software-properties-common gnupg2
+curl -sSLo /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
+sh -c 'echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
+apt-get install php8.0-mbstring php8.0-xml php8.0-cli   php8.0-common php8.0-intl php8.0-opcache php8.0-readline php8.0-mysql php8.0-fpm php8.0-curl unzip wget -y
+apt-get update
+apt-get install php8.0-mbstring php8.0-xml php8.0-cli   php8.0-common php8.0-intl php8.0-opcache php8.0-readline php8.0-mysql php8.0-fpm php8.0-curl unzip wget -y
+apt-get install nginx -y
+
+service nginx start
+service php8.0-fpm start
+```
+
+After that, we also need to install the composer:
+```sh
+cd /root
+wget https://getcomposer.org/download/2.0.13/composer.phar
+chmod +x composer.phar
+cp composer.phar /usr/local/bin/composer
+```
+
+Then we install git and do a git clone to the repository on the question, then do a composer update
+```sh
+apt-get install git -y
+cd /var/www && git clone https://github.com/martuafernando/laravel-praktikum-jarkom
+cd /var/www/laravel-praktikum-jarkom && composer update
+```
+
+Then do a configuration on the ```.env``` file for each worker 
+```sh
+cd /var/www/laravel-praktikum-jarkom && cp .env.example .env
+```
+
+Then fill in the following configuration by completing the database configuration according to our database configuration:
+```sh
+APP_NAME=Laravel
+APP_ENV=local
+APP_KEY=
+APP_DEBUG=true
+APP_URL=http://localhost
+
+LOG_CHANNEL=stack
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=debug
+
+DB_CONNECTION=mysql
+DB_HOST=10.61.2.1
+DB_PORT=3306
+DB_DATABASE=dbkelompokI05
+DB_USERNAME=kelompokI05
+DB_PASSWORD=passwordI05
+
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+
+MEMCACHED_HOST=127.0.0.1
+
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+MAIL_MAILER=smtp
+MAIL_HOST=mailpit
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=
+AWS_USE_PATH_STYLE_ENDPOINT=false
+
+PUSHER_APP_ID=
+PUSHER_APP_KEY=
+PUSHER_APP_SECRET=
+PUSHER_HOST=
+PUSHER_PORT=443
+PUSHER_SCHEME=https
+PUSHER_APP_CLUSTER=mt1
+
+VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
+VITE_PUSHER_HOST="${PUSHER_HOST}"
+VITE_PUSHER_PORT="${PUSHER_PORT}"
+VITE_PUSHER_SCHEME="${PUSHER_SCHEME}"
+VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
+```
+After that, do this script for the laravel file:
+```sh
+cd /var/www/laravel-praktikum-jarkom && php artisan key:generate
+cd /var/www/laravel-praktikum-jarkom && php artisan config:cache
+cd /var/www/laravel-praktikum-jarkom && php artisan migrate
+cd /var/www/laravel-praktikum-jarkom && php artisan db:seed
+cd /var/www/laravel-praktikum-jarkom && php artisan storage:link
+cd /var/www/laravel-praktikum-jarkom && php artisan jwt:secret
+cd /var/www/laravel-praktikum-jarkom && php artisan config:clear
+chown -R www-data.www-data /var/www/laravel-praktikum-jarkom/storage
+```
+
+Then, for each worker, configure their respective **Nginx** as well by filling in the script at ```/etc/nginx/sites-available/laravel-worker```
+
+```sh
+echo 'server {
+    listen <8001>;
+
+    root /var/www/laravel-praktikum-jarkom/public;
+
+    index index.php index.html index.htm;
+    server_name _;
+
+    location / {
+            try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # pass PHP scripts to FastCGI server
+    location ~ \.php$ {
+      include snippets/fastcgi-php.conf;
+      fastcgi_pass unix:/var/run/php/php8.0-fpm.sock;
+    }
+
+    location ~ /\.ht {
+            deny all;
+    }
+
+    error_log /var/log/nginx/implementasi_error.log;
+    access_log /var/log/nginx/implementasi_access.log;
+}' > /etc/nginx/sites-available/laravel-worker
+```
+
+So that each worker will be opened on its respective port, which is 8001
+
+```
+10.61.4.1:8001
+10.61.4.2:8001
+10.61.4.3:8001
+```
+
+Then we restart both **php8.0** and **Nginx** on the worker, by running these commands:
+```sh
+service php8.0-fpm restart
+service nginx restart
+```
+
+After that we test on every worker by running this command:
+```sh
+lynx localhost:8001
+```
+
 # No. 15
 > Riegel Channel memiliki beberapa endpoint yang harus ditesting sebanyak 100 request dengan 10 request/second. Tambahkan response dan hasil testing pada grimoire.
 POST /auth/register 
+
+
+To work on this problem, it is necessary to perform testing using **Apache Benchmark** on one of the workers. Here, we will use the ```Fern``` as the Laravel Worker, which will later be the worker tested by the ```Revolte``` client. Before conducting the testing, we use a ```.json``` file that will be used as the **body** to be sent to the ```/api/auth/register``` endpoint as follows:
+
+### Script
+```sh
+echo '
+{
+  "username": "kelompokI05",
+  "password": "passwordI05"
+}' > register.json
+```
+Then run the command below on the Revolte client:
+```
+ab -n 100 -c 10 -p register.json -T application/json http://10.61.4.6:8001/api/auth/register
+```
 
 # No. 16
 > Riegel Channel memiliki beberapa endpoint yang harus ditesting sebanyak 100 request dengan 10 request/second. Tambahkan response dan hasil testing pada grimoire.

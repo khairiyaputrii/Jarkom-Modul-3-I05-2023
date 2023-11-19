@@ -479,7 +479,7 @@ subnet 10.61.4.0 netmask 255.255.255.0 {
 # No. 6
 > Pada masing-masing worker PHP, lakukan konfigurasi virtual host untuk website berikut dengan menggunakan php 7.3.
 
-Di PHP Worker (Lawine, Linie, Lugner)
+On PHP Worker (Lawine, Linie, Lugner)
 ```
 apt-get update
 apt install nginx php php-fpm -y
@@ -527,7 +527,7 @@ service php7.3-fpm start
 service php7.3-fpm restart
 ```
 
-Di Semua Client (Saya melakukan setting di Revolte)
+On All Clients (We made settings in Revolte)
 ```
 apt-get update
 apt install lynx -y
@@ -543,7 +543,7 @@ Linie, 2GB, 2vCPU, dan 50 GB SSD.
 Lugner 1GB, 1vCPU, dan 25 GB SSD.
 aturlah agar Eisen dapat bekerja dengan maksimal, lalu lakukan testing dengan 1000 request dan 100 request/second.
 
-Di Eisen
+On Eisen
 ```
 echo nameserver 192.168.122.1 > /etc/resolv.conf
 apt-get update
@@ -570,14 +570,14 @@ ln -s /etc/nginx/sites-available/lb-jarkom /etc/nginx/sites-enabled
 rm -r /etc/nginx/sites-enabled/default
 service nginx start
 ```
-Di Heiter
+On Heiter
 ```
 nano /etc/bind/jarkom/granz.channel.I05.com
 ubah IP arahin ke Load Balancer 10.61.2.3
 
 service bind9 restart
 ```
-Di Revolte
+On Revolte
 ```
 apt-get install apache2
 service apache2 start
@@ -617,16 +617,204 @@ POST /auth/register
 > Riegel Channel memiliki beberapa endpoint yang harus ditesting sebanyak 100 request dengan 10 request/second. Tambahkan response dan hasil testing pada grimoire.
 POST /auth/login
 
+To work on this problem, it is necessary to perform testing using ``Apache Benchmark`` on one of the workers. Here we will use the Laravel `Fern` worker, which will later be the worker to be tested by the `Revolte` client. Before testing, we use a `.json` file as the `body` that will be sent to the `/api/auth/login` endpoint, as follows:
+
+## Script
+```
+echo '
+{
+  "username": "kelompokI05",
+  "password": "passwordI05"
+}' > login.json
+```
+Then, execute the following command from the Revolte client side
+```
+ab -n 100 -c 10 -p login.json -T application/json http://10.61.4.1:8001/api/auth/login
+```
+##Result
+
 # No. 17
 > Riegel Channel memiliki beberapa endpoint yang harus ditesting sebanyak 100 request dengan 10 request/second. Tambahkan response dan hasil testing pada grimoire. 
 GET /me
 
+To work on this problem, it is necessary to perform testing using `Apache Benchmark` on one of the workers. Here, we will use the Laravel `Fern` worker, which will later be the worker tested by the `Revolte` client. Before conducting the testing, several configurations need to be prepared as follows:
+
+## Script
+```curl -X POST -H "Content-Type: application/json" -d @login.json http://10.61.4.1:8001/api/auth/login > login_output.txt```
+Then, execute the following command to set the token globally
+```
+token=$(cat login_output.txt | jq -r '.token')
+```
+After that, execute the following command to perform testing
+```
+ab -n 100 -c 10 -H "Authorization: Bearer $token" http://10.61.4.1:8001/api/me
+```
+
+
 # No. 18
 > Untuk memastikan ketiganya bekerja sama secara adil untuk mengatur Riegel Channel maka implementasikan Proxy Bind pada Eisen untuk mengaitkan IP dari Frieren, Flamme, dan Fern.
+
+Before starting to work, it is necessary to set up first. After that, because only the third command is given, and the `workers` run fairly, we provide the implementation of `Load Balancing` because, according to its definition, it distributes the workload evenly. Therefore, here is the configuration for `nginx`
+## Script
+```
+echo 'upstream worker {
+    server 10.61.4.1:8001;
+    server 10.61.4.2:8002;
+    server 10.61.4.3:8003;
+}
+
+server {
+    listen 80;
+    server_name riegel.canyon.I05.com www.riegel.canyon.I05.com;
+
+    location / {
+        proxy_pass http://worker;
+    }
+} 
+' > /etc/nginx/sites-available/laravel-worker
+
+ln -s /etc/nginx/sites-available/laravel-worker /etc/nginx/sites-enabled/laravel-worker
+
+service nginx restart
+```
+**Notes**, Be careful of `port` collisions with the `load balancer` from the `PHP worker`
 
 # No. 19
 > Untuk meningkatkan performa dari Worker, coba implementasikan PHP-FPM pada Frieren, Flamme, dan Fern. Untuk testing kinerja naikkan pm.max_children, pm.start_servers, pm.min_spare_servers, pm.max_spare_servers.
 sebanyak tiga percobaan dan lakukan testing sebanyak 100 request dengan 10 request/second kemudian berikan hasil analisisnya pada Grimoire.
 
+
+To work on this problem, there are several explanations as follows:
+
+**pm.max_children**: Determines the maximum number of PHP workers (child processes) that can run concurrently. This value should be adjusted based on the server's resource capacity. If set too low, the server may struggle to handle many simultaneous requests, while if set too high, it can lead to overload and resource shortages.
+
+**pm.start_servers**: Specifies the number of PHP workers that will automatically start when PHP-FPM is first launched or restarted. This helps optimize performance when the server is initially started.
+
+**pm.min_spare_servers**: Sets the minimum number of PHP workers that remain running when the server is operational. This helps ensure that the server stays responsive to requests even during low traffic periods.
+
+**pm.max_spare_servers**: Determines the maximum number of PHP workers that can run but do not handle requests. This number is adjusted to handle traffic spikes without adding too many resources during low loads.
+
+There will be four configurations for the `package manager` processes on each worker that will be performed for testing.
+##Script
+### Script 1
+```
+# Setup Awal
+echo '[www]
+user = www-data
+group = www-data
+listen = /run/php/php8.0-fpm.sock
+listen.owner = www-data
+listen.group = www-data
+php_admin_value[disable_functions] = exec,passthru,shell_exec,system
+php_admin_flag[allow_url_fopen] = off
+
+; Choose how the process manager will control the number of child processes.
+
+pm = dynamic
+pm.max_children = 5
+pm.start_servers = 2
+pm.min_spare_servers = 1
+pm.max_spare_servers = 3' > /etc/php/8.0/fpm/pool.d/www.conf
+
+service php8.0-fpm restart
+```
+### Script2
+```
+echo '[www]
+user = www-data
+group = www-data
+listen = /run/php/php8.0-fpm.sock
+listen.owner = www-data
+listen.group = www-data
+php_admin_value[disable_functions] = exec,passthru,shell_exec,system
+php_admin_flag[allow_url_fopen] = off
+
+; Choose how the process manager will control the number of child processes.
+
+pm = dynamic
+pm.max_children = 25
+pm.start_servers = 5
+pm.min_spare_servers = 3
+pm.max_spare_servers = 10' > /etc/php/8.0/fpm/pool.d/www.conf
+
+service php8.0-fpm restart
+```
+### Script3
+```
+echo '[www]
+user = www-data
+group = www-data
+listen = /run/php/php8.0-fpm.sock
+listen.owner = www-data
+listen.group = www-data
+php_admin_value[disable_functions] = exec,passthru,shell_exec,system
+php_admin_flag[allow_url_fopen] = off
+
+; Choose how the process manager will control the number of child processes.
+
+pm = dynamic
+pm.max_children = 50
+pm.start_servers = 8
+pm.min_spare_servers = 5
+pm.max_spare_servers = 15' > /etc/php/8.0/fpm/pool.d/www.conf
+
+service php8.0-fpm restart
+```
+### Script4
+```
+echo '[www]
+user = www-data
+group = www-data
+listen = /run/php/php8.0-fpm.sock
+listen.owner = www-data
+listen.group = www-data
+php_admin_value[disable_functions] = exec,passthru,shell_exec,system
+php_admin_flag[allow_url_fopen] = off
+
+; Choose how the process manager will control the number of child processes.
+
+pm = dynamic
+pm.max_children = 75
+pm.start_servers = 10
+pm.min_spare_servers = 5
+pm.max_spare_servers = 20' > /etc/php/8.0/fpm/pool.d/www.conf
+
+service php8.0-fpm restart
+```
+
 # No. 20
 > Nampaknya hanya menggunakan PHP-FPM tidak cukup untuk meningkatkan performa dari worker maka implementasikan Least-Conn pada Eisen. Untuk testing kinerja dari worker tersebut dilakukan sebanyak 100 request dengan 10 request/second.
+
+
+Because the processes configured previously on each worker, specifically on the package manager, did not provide satisfactory results to improve worker performance, an algorithm is added to the load balancer. The algorithm used is Least-Connection, where this algorithm prioritizes distribution based on the lowest workload. The master node will record all loads and performance from all nodes and will prioritize the ones with the lowest workload. This way, it is expected that no server will have a low load
+## Script
+```
+echo 'upstream worker {
+    least_conn;
+    server 10.61.4.1:8001;
+    server 10.61.4.2:8002;
+    server 10.61.4.3:8003;
+}
+
+server {
+    listen 80;
+    server_name riegel.canyon.I05.com www.riegel.canyon.I05.com;
+
+    location / {
+        proxy_pass http://worker;
+    }
+} 
+' > /etc/nginx/sites-available/laravel-worker
+
+service nginx restart
+```
+**Notes**, Here, we are still using the `setup` for the `package manager`
+```
+pm = dynamic
+pm.max_children = 75
+pm.start_servers = 10
+pm.min_spare_servers = 5
+pm.max_spare_servers = 20
+```
+
+

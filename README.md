@@ -631,7 +631,7 @@ Then, execute the following command from the Revolte client side
 ```
 ab -n 100 -c 10 -p login.json -T application/json http://10.61.4.1:8001/api/auth/login
 ```
-##Result
+
 
 # No. 17
 > Riegel Channel memiliki beberapa endpoint yang harus ditesting sebanyak 100 request dengan 10 request/second. Tambahkan response dan hasil testing pada grimoire. 

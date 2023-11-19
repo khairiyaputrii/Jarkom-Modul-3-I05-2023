@@ -533,15 +533,8 @@ Lugner 1GB, 1vCPU, dan 25 GB SSD.
 aturlah agar Eisen dapat bekerja dengan maksimal, lalu lakukan testing dengan 1000 request dan 100 request/second.
 
 On Eisen
-```
-echo nameserver 192.168.122.1 > /etc/resolv.conf
-apt-get update
-apt install nginx php php-fpm -y
-
-nano /etc/nginx/sites-available/lb-jarkom
- 
-Tambahkan
-upstream myweb {
+```sh
+echo 'upstream myweb {
        server 10.61.3.4;
        server 10.61.3.5;
        server 10.61.3.6;
@@ -553,23 +546,35 @@ server {
         location / {
         proxy_pass http://myweb;
         }
-}
+}' > /etc/nginx/sites-available/lb-jarkom
 
 ln -s /etc/nginx/sites-available/lb-jarkom /etc/nginx/sites-enabled
 rm -r /etc/nginx/sites-enabled/default
 service nginx start
 ```
 On Heiter
-```
-nano /etc/bind/jarkom/granz.channel.I05.com
-ubah IP arahin ke Load Balancer 10.61.2.3
+```sh
+echo ';
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     granz.channel.I05.com. root.granz.channel.I05.com. (
+                     2023111601         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      granz.channel.I05.com.
+@       IN      A       10.61.2.3               ; IP Load Balancer
+www     IN      CNAME   granz.channel.I05.com.
+@       IN      AAAA    ::1 
+' > /etc/bind/jarkom/granz.channel.I05.com
 
 service bind9 restart
 ```
-On Revolte
+Testing on Revolte using this command:
 ```
-apt-get install apache2
-service apache2 start
 ab -n 1000 -c 100 http://www.granz.channel.I05.com/ 
 ```
 

@@ -659,13 +659,33 @@ ab -n 1000 -c 100 http://www.granz.channel.I05.com/
 Nama Algoritma Load Balancer,
 Report hasil testing pada Apache Benchmark,
 Grafik request per second untuk masing masing algoritma, 
-Analisis 
+Analisis
+
+The rest of the configuration is the same as Question 7
+## Script
+Run the following command on the `Revolte` client
+```
+ab -n 200 -c 10 http://www.granz.channel.a09.com/ 
+```
 
 # No. 9
 > Dengan menggunakan algoritma Round Robin, lakukan testing dengan menggunakan 3 worker, 2 worker, dan 1 worker sebanyak 100 request dengan 10 request/second, kemudian tambahkan grafiknya pada grimoire.
 
+Before working on it, it's necessary to set up first. After setting up the `Eisen` node, now perform testing on the previously created load balancer. The key difference is that testing needs to be done using `1 worker`, `2 workers`, and `3 worker`.
+## Script
+Run the following command on the `Revolte` client
+```
+ab -n 100 -c 10 http://www.granz.channel.I05.com/ 
+```
 # No. 10
 > Selanjutnya coba tambahkan konfigurasi autentikasi di LB dengan dengan kombinasi username: “netics” dan password: “ajkyyy”, dengan yyy merupakan kode kelompok. Terakhir simpan file “htpasswd” nya di /etc/nginx/rahasisakita/
+
+Before working on it, it's necessary to set up first. After that, perform several configurations as follows
+## Script
+```
+mkdir /etc/nginx/rahasisakita
+htpasswd -c /etc/nginx/rahasisakita/htpasswd netics
+```
 
 # No. 11
 > Lalu buat untuk setiap request yang mengandung /its akan di proxy passing menuju halaman https://www.its.ac.id.
@@ -981,7 +1001,7 @@ POST /auth/login
 To work on this problem, it is necessary to perform testing using ``Apache Benchmark`` on one of the workers. Here we will use the Laravel `Fern` worker, which will later be the worker to be tested by the `Revolte` client. Before testing, we use a `.json` file as the `body` that will be sent to the `/api/auth/login` endpoint, as follows:
 
 ## Script
-```
+```sh
 echo '
 {
   "username": "kelompokI05",
@@ -1017,7 +1037,7 @@ ab -n 100 -c 10 -H "Authorization: Bearer $token" http://10.61.4.1:8001/api/me
 
 Before starting to work, it is necessary to set up first. After that, because only the third command is given, and the `workers` run fairly, we provide the implementation of `Load Balancing` because, according to its definition, it distributes the workload evenly. Therefore, here is the configuration for `nginx`
 ## Script
-```
+```sh
 echo 'upstream worker {
     server 10.61.4.1:8001;
     server 10.61.4.2:8002;
@@ -1058,7 +1078,7 @@ To work on this problem, there are several explanations as follows:
 There will be four configurations for the `package manager` processes on each worker that will be performed for testing.
 ##Script
 ### Script 1
-```
+```sh
 # Setup Awal
 echo '[www]
 user = www-data
@@ -1080,7 +1100,7 @@ pm.max_spare_servers = 3' > /etc/php/8.0/fpm/pool.d/www.conf
 service php8.0-fpm restart
 ```
 ### Script2
-```
+```sh
 echo '[www]
 user = www-data
 group = www-data
@@ -1101,7 +1121,7 @@ pm.max_spare_servers = 10' > /etc/php/8.0/fpm/pool.d/www.conf
 service php8.0-fpm restart
 ```
 ### Script3
-```
+```sh
 echo '[www]
 user = www-data
 group = www-data
@@ -1122,7 +1142,7 @@ pm.max_spare_servers = 15' > /etc/php/8.0/fpm/pool.d/www.conf
 service php8.0-fpm restart
 ```
 ### Script4
-```
+```sh
 echo '[www]
 user = www-data
 group = www-data
@@ -1149,7 +1169,7 @@ service php8.0-fpm restart
 
 Because the processes configured previously on each worker, specifically on the package manager, did not provide satisfactory results to improve worker performance, an algorithm is added to the load balancer. The algorithm used is Least-Connection, where this algorithm prioritizes distribution based on the lowest workload. The master node will record all loads and performance from all nodes and will prioritize the ones with the lowest workload. This way, it is expected that no server will have a low load
 ## Script
-```
+```sh
 
 echo 'upstream worker {
     least_conn;

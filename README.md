@@ -174,6 +174,10 @@ service isc-dhcp-relay restart
 ```
 echo 'nameserver 192.168.122.1' > /etc/resolv.conf
 
+apt-get update
+apt-get install mariadb-server -y
+service mysql start
+
 cp -r -f /root/prak3/etc /
 ```
 - **Eisen : Load Balancer**
@@ -672,6 +676,49 @@ server {
 
 # No. 13
 > Semua data yang diperlukan, diatur pada Denken dan harus dapat diakses oleh Frieren, Flamme, dan Fern.
+
+After installing the mysql, we need to change the configuration on ```/etc/mysql/mariadb.conf.d/50-server.cnf``` into:
+```
+bind-address            = 0.0.0.0
+```
+And the next thing that we need to do is:
+
+### Script
+```sh
+echo '# This group is read both both by the client and the server
+# use it for options that affect everything
+#
+[client-server]
+
+# Import all .cnf files from configuration directory
+!includedir /etc/mysql/conf.d/
+!includedir /etc/mysql/mariadb.conf.d/
+
+[mysqld]
+skip-networking=0
+skip-bind-address' >  /etc/mysql/my.cnf
+```
+Restart mysql by running this command:
+```
+service mysql restart
+```
+
+After restarting mysql, run these commands:
+```
+mysql -u root -p
+Enter password: 
+
+CREATE USER 'kelompokI05'@'%' IDENTIFIED BY 'passwordI05';
+CREATE USER 'kelompokI05'@'localhost' IDENTIFIED BY 'passwordI05';
+CREATE DATABASE dbkelompokI05;
+GRANT ALL PRIVILEGES ON *.* TO 'kelompokI05'@'%';
+GRANT ALL PRIVILEGES ON *.* TO 'kelompokI05'@'localhost';
+FLUSH PRIVILEGES;
+```
+Testing on Fern:
+```sh
+mariadb --host=10.61.2.2 --port=3306 --user=kelompokI05 --password=passwordI05 dbkelompokI05 -e "SHOW DATABASES;"
+```
 
 # No. 14
 > Frieren, Flamme, dan Fern memiliki Riegel Channel sesuai dengan quest guide berikut. Jangan lupa melakukan instalasi PHP8.0 dan Composer

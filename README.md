@@ -656,6 +656,8 @@ Testing on Revolte using this command:
 ```
 ab -n 1000 -c 100 http://www.granz.channel.I05.com/ 
 ```
+![no7](images/no7.jpeg)
+![No7](images/num7.jpeg)
 
 # No. 8
 > Karena diminta untuk menuliskan grimoire, buatlah analisis hasil testing dengan 200 request dan 10 request/second masing-masing algoritma Load Balancer dengan ketentuan sebagai berikut:

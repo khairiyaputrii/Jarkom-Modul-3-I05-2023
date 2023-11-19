@@ -9,7 +9,7 @@ Group Members:
 |     2     |     Talitha Hayyinas Sahala    |  5025211263 |
 
 ## Topologi
-![topologi](https://github.com/khairiyaputrii/Jarkom-Modul-3-I05-2023/assets/115809934/f39deffd-fbd0-44a9-96ce-8dde10faa02c)
+![Topologi](images/Topologi.jpeg)
 
 ## Node Configurations
 
@@ -371,13 +371,13 @@ On **Frieren** :
 ```sh
 ping riegel.canyon.I05.com
 ```
+![Riegel](images/PingRiegel.jpeg)
 
 On **Lawine** :
 ```sh
 ping granz.channel.I05.com
 ```
-
-### Result
+![Granz](images/PingGranz.jpeg)
 
 # No. 2
 > Semua CLIENT harus menggunakan konfigurasi dari DHCP Server.
